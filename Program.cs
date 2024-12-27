@@ -16,6 +16,7 @@ namespace Country_Mentioned_Bot
         private readonly DiscordSocketClient _client;
         private readonly IConfiguration _config;
         private static string? _imageDirectory;
+        private readonly List<string> _countries;
 
         public static Task Main(string[] args) => new Program().MainAsync();
 
@@ -33,6 +34,8 @@ namespace Country_Mentioned_Bot
                 .SetBasePath(AppContext.BaseDirectory)
                 .AddJsonFile(path: "config.json");
             _config = _builder.Build();
+
+            _countries = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, List<string>>>(System.IO.File.ReadAllText("countries.json"))?["countries"] ?? new List<string>();
         }
 
         public async Task MainAsync()
@@ -63,21 +66,17 @@ namespace Country_Mentioned_Bot
 
             Console.WriteLine($"Message received: '{message.Content}' from {message.Author.Username}");
 
-            var countries = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, List<string>>>(System.IO.File.ReadAllText("countries.json"))?["countries"];
-
-            if (countries != null)
+            foreach (var country in _countries)
             {
-                foreach (var country in countries)
+                if (upperCaseMessage.Contains(country))
                 {
-                    if (upperCaseMessage.Contains(country))
+                    string imagePath = $"{_imageDirectory}/Images/{country}.jpg";
+                    Console.WriteLine(imagePath);
+                    if (System.IO.File.Exists(imagePath))
                     {
-                        string imagePath = $"{_imageDirectory}/Images/{country}.jpg";
-                        if (System.IO.File.Exists(imagePath))
-                        {
-                            await message.Channel.SendFileAsync(imagePath, messageReference: new MessageReference(message.Id));
-                        }
-                        return;
+                        await message.Channel.SendFileAsync(imagePath, messageReference: new MessageReference(message.Id));
                     }
+                    return;
                 }
             }
         }
