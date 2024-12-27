@@ -1,13 +1,8 @@
-﻿using System;
+﻿
 using Discord;
-using Discord.Net;
-using Discord.Commands;
 using Discord.WebSocket;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Configuration.Json;
-using System.Collections.Generic;
-using System.Text.Json;
+
 
 namespace Country_Mentioned_Bot
 {
