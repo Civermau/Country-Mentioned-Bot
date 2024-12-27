@@ -15,6 +15,7 @@ namespace Country_Mentioned_Bot
     {
         private readonly DiscordSocketClient _client;
         private readonly IConfiguration _config;
+        private static string? _imageDirectory;
 
         public static Task Main(string[] args) => new Program().MainAsync();
 
@@ -36,6 +37,7 @@ namespace Country_Mentioned_Bot
 
         public async Task MainAsync()
         {
+            _imageDirectory = GetImageDirectoryPath();
             //This is where we get the Token value from the configuration file
             await _client.LoginAsync(TokenType.Bot, _config["Token"]);
             await _client.StartAsync();
@@ -59,8 +61,6 @@ namespace Country_Mentioned_Bot
             if (message.Author.Id == _client.CurrentUser.Id)
                 return;
 
-
-            await message.Channel.SendMessageAsync(":Emoji:");
             Console.WriteLine($"Message received: '{message.Content}' from {message.Author.Username}");
 
             var countries = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, List<string>>>(System.IO.File.ReadAllText("countries.json"))?["countries"];
@@ -71,19 +71,21 @@ namespace Country_Mentioned_Bot
                 {
                     if (upperCaseMessage.Contains(country))
                     {
-                        string imagePath = $"C:/Users/Civer/Desktop/Country Mentioned Bot/Images/{country}.jpg";
+                        string imagePath = $"{_imageDirectory}/Images/{country}.jpg";
                         if (System.IO.File.Exists(imagePath))
                         {
-                            await message.Channel.SendFileAsync(imagePath);
-                        }
-                        else
-                        {
-                            await message.Channel.SendMessageAsync("Image not found unu");
+                            await message.Channel.SendFileAsync(imagePath, messageReference: new MessageReference(message.Id));
                         }
                         return;
                     }
                 }
             }
+        }
+
+        private static string GetImageDirectoryPath()
+        {
+            Console.WriteLine(AppContext.BaseDirectory);
+            return AppContext.BaseDirectory;
         }
 
     }
