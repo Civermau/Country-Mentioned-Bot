@@ -54,12 +54,12 @@ Ready to deploy the bot? Follow these steps:
 6. Build and run the solution. use `dotnet build` & `dotnet run`
 
 ### If you want to upload it to a server
- 1. **Clone this repo on the server, or upload your version to a server**
+1. **Clone this repo on the server, or upload your version to a server:**
    ```bash
    git clone https://github.com/Civermau/Country-Mentioned-Bot.git
-   ```
- 2. run `dotnet publish -O path/of/bot` to generate the DLL, replace path to the desired location
- 3. move the file `config.json` (that should have now the token of YOUR bot) to the publish folder
- 4. move the file `countries.json` to the publish folder
- 5. move the dir `Images` to the publish folder
- 6. run `dotnet "country mentioned bot.dll"` or the name of the file you selected
+   ```  
+2. run `dotnet publish -O path/of/bot` to generate the DLL, replace path to the desired location
+3. move the file `config.json` (that should have now the token of YOUR bot) to the publish folder
+4. move the file `countries.json` to the publish folder
+5. move the dir `Images` to the publish folder
+6. run `dotnet "country mentioned bot.dll"` or the name of the file you selected
