@@ -18,10 +18,10 @@ namespace Country_Mentioned_Bot
         public Program()
         {
             _client = new DiscordSocketClient();
-            //Hook into the client ready event
+            //Hook into the client ready event, to handle the bot ready event
             _client.Ready += Ready;
 
-            //Hook into the message received event, this is how we handle the hello world example
+            //Hook into the message received event, to handle the country mentioned event
             _client.MessageReceived += MessageReceivedAsync;
 
             //Create the configuration
