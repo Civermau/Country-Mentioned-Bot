@@ -104,7 +104,8 @@ namespace Country_Mentioned_Bot
                 }
 
                 await message.Channel.SendFilesAsync(attachments, messageReference: new MessageReference(message.Id));
-                Console.WriteLine($"Message received: '{message.Content}' from {message.Author.Username} in #{message.Channel.Name}");
+                Console.WriteLine($"Message received: '{message.Content}' from {message.Author.Username} in #{message.Channel.Name} (Guild: {(message.Channel as SocketGuildChannel)?.Guild.Name ?? "DM"})");
+                //The (Guild: {(message.Channel as SocketGuildChannel)?.Guild.Name ?? "DM"}) part is interesting, it tires to cast the channel as a SocketGuildChannel, if it fails, it means is not a guild channel, so it's an MD, but if it works, it means it's a guild channel, so it's a server.
 
                 foreach (var attachment in attachments)
                 {
