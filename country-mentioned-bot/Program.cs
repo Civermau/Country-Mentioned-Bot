@@ -1,5 +1,4 @@
-﻿
-using Discord;
+﻿using Discord;
 using Discord.WebSocket;
 using Microsoft.Extensions.Configuration;
 
@@ -11,32 +10,44 @@ namespace Country_Mentioned_Bot
         private readonly DiscordSocketClient _client;
         private readonly IConfiguration _config;
         private static string? _imageDirectory;
-        private readonly List<string> _countries;
-
+        private static string? _countriesPath;
+        private readonly List<string> _englishCountries;
+        private readonly List<string> _spanishCountries;
         public static Task Main(string[] args) => new Program().MainAsync();
 
         public Program()
         {
-            _client = new DiscordSocketClient();
-            //Hook into the client ready event, to handle the bot ready event
-            _client.Ready += Ready;
+            var config = new DiscordSocketConfig
+            {
+                // Intents are used to specify the events that the bot will receive, required for the bot to function 
+                // (I broke my head trying to figure out why it wasn't working until I found this)
+                GatewayIntents = GatewayIntents.Guilds |
+                                GatewayIntents.GuildMessages |
+                                GatewayIntents.MessageContent
+            };
 
-            //Hook into the message received event, to handle the country mentioned event
+            _client = new DiscordSocketClient(config);
+
+            // Methods suscriptions to the events of the client
+            _client.Ready += Ready;
             _client.MessageReceived += MessageReceivedAsync;
 
-            //Create the configuration
             var _builder = new ConfigurationBuilder()
                 .SetBasePath(AppContext.BaseDirectory)
                 .AddJsonFile(path: "config.json");
             _config = _builder.Build();
 
-            _countries = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, List<string>>>(System.IO.File.ReadAllText("countries.json"))?["countries"] ?? new List<string>();
+            _englishCountries = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, List<string>>>(System.IO.File.ReadAllText("CountriesJsons/en-countries.json"))?["countries"] ?? new List<string>();
+            _spanishCountries = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, List<string>>>(System.IO.File.ReadAllText("CountriesJsons/es-countries.json"))?["countries"] ?? new List<string>();
         }
 
         public async Task MainAsync()
         {
-            _imageDirectory = GetImageDirectoryPath();
-            //This is where we get the Token value from the configuration file
+            Console.WriteLine("Connecting to Discord...\n");
+
+            _imageDirectory = AppContext.BaseDirectory + "/Images";
+            _countriesPath = AppContext.BaseDirectory + "/CountriesJsons";
+
             await _client.LoginAsync(TokenType.Bot, _config["Token"]);
             await _client.StartAsync();
 
@@ -47,40 +58,59 @@ namespace Country_Mentioned_Bot
         private Task Ready()
         {
             Console.WriteLine($"Connected as -> {_client.CurrentUser.Username}#{_client.CurrentUser.Discriminator} :)");
+            Console.Write($"Bot is running on servers:");
+            Console.ForegroundColor = ConsoleColor.Green;
+            foreach (var guild in _client.Guilds)
+            {
+                Console.Write($" | {guild.Name}");
+            }
+            Console.WriteLine("");
+            Console.ResetColor();
             return Task.CompletedTask;
         }
 
         private async Task MessageReceivedAsync(SocketMessage message)
         {
+            List<string> _imagesPaths = new List<string>();
+
             string upperCaseMessage = message.Content.ToUpper();
-            
 
             // Avoid responding to your own messages
             if (message.Author.Id == _client.CurrentUser.Id)
                 return;
 
-            Console.WriteLine($"Message received: '{message.Content}' from {message.Author.Username}");
-
-            foreach (var country in _countries)
+            foreach (var country in _englishCountries)
             {
                 if (upperCaseMessage.Contains(country))
                 {
-                    string imagePath = $"{_imageDirectory}/Images/{country}.jpg";
-                    Console.WriteLine(imagePath);
+                    string imagePath = $"{_imageDirectory}/{country}.jpg";
+
                     if (System.IO.File.Exists(imagePath))
                     {
-                        await message.Channel.SendFileAsync(imagePath, messageReference: new MessageReference(message.Id));
+                        _imagesPaths.Add(imagePath);
                     }
-                    return;
+                }
+            }
+            if (_imagesPaths.Count > 0)
+            {
+                List<FileAttachment> attachments = new List<FileAttachment>();
+
+                foreach (var imagePath in _imagesPaths)
+                {
+                    var filename = Path.GetFileName(imagePath);
+                    var filestream = new FileStream(imagePath, FileMode.Open, FileAccess.Read);
+                    var stream = new FileAttachment(filestream, filename);
+                    attachments.Add(stream);
+                }
+
+                await message.Channel.SendFilesAsync(attachments, messageReference: new MessageReference(message.Id));
+                Console.WriteLine($"Message received: '{message.Content}' from {message.Author.Username} in #{message.Channel.Name}");
+
+                foreach (var attachment in attachments)
+                {
+                    await attachment.Stream.DisposeAsync();
                 }
             }
         }
-
-        private static string GetImageDirectoryPath()
-        {
-            Console.WriteLine(AppContext.BaseDirectory);
-            return AppContext.BaseDirectory;
-        }
-
     }
 }
