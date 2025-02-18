@@ -7,7 +7,7 @@ A Discord bot that responds with images of countries when they are mentioned in 
 This bot listens for country names in messages and sends an image of the mentioned country if available.
 
 <div align="center">
-  <img src="https://github.com/Civermau/Country-Mentioned-Bot/blob/master/country-mentioned-bot/Images/MEXICO.jpg?raw=true" alt="Country Mentioned Bot">
+  <img src="https://github.com/user-attachments/assets/344b3eed-5dd3-4806-9164-b2f0c6c194e9" alt="Country Mentioned Bot">
 </div>
 
 ## 💻 How It Works
